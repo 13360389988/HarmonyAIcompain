@@ -1,0 +1,17 @@
+/node_modules
+/oh_modules
+/.preview
+/build
+/**/build
+/.cxx
+/.test
+/.idea
+/.hvigor
+*.pyc
+__pycache__/
+data/
+*.db
+chromadb/
+local.properties
+settings.local.json
+*.log

@@ -1,0 +1,18 @@
+{
+  "allowToBackupRestore": true,
+  "fullBackupOnly": false,
+  "backupRules": {
+    "include": [
+      "database/zhixin_memory.db",
+      "preferences/"
+    ],
+    "exclude": [
+      "cache/",
+      "temp/"
+    ]
+  },
+  "restoreRules": {
+    "restoreAny": false,
+    "restoreSelectiveFiles": true
+  }
+}

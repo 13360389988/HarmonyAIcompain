@@ -1,0 +1,8 @@
+{
+  "src": [
+    "pages/Index",
+    "pages/MemoryPage",
+    "pages/DecisionPage",
+    "pages/InsightsPage"
+  ]
+}
