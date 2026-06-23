@@ -1,0 +1,11 @@
+/node_modules
+/oh_modules
+/.preview
+/build
+/.cxx
+/.test
+*.pyc
+__pycache__/
+data/
+*.db
+chromadb/

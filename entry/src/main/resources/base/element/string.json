@@ -1,0 +1,32 @@
+{
+  "string": [
+    {
+      "name": "app_name",
+      "value": "知心"
+    },
+    {
+      "name": "module_desc",
+      "value": "知心 AI 陪伴助手"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "知心 AI 陪伴助手"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "知心"
+    },
+    {
+      "name": "location_reason",
+      "value": "用于记录您的行踪规律，预测您的下一步动向"
+    },
+    {
+      "name": "notification_reason",
+      "value": "用于推送预测、督促、提醒和关怀消息"
+    },
+    {
+      "name": "reminder_reason",
+      "value": "用于定时推送早安、晚间复盘、作息提醒等"
+    }
+  ]
+}
