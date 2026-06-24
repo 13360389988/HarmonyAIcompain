@@ -323,15 +323,19 @@ export class MemoryService {
       );
     } else {
       rs.close();
-      await this.store.insert("semantic_memory", {
+      const confVal: number = rec.confidence !== undefined ? rec.confidence : 0.5;
+      const sourceVal: string = rec.source !== undefined ? rec.source : "";
+      const evidenceVal: number = rec.evidence_count !== undefined ? rec.evidence_count : 1;
+      const insertValues: relationalStore.ValuesBucket = {
         category: rec.category,
         key: rec.key,
         value: rec.value,
-        confidence: rec.confidence || 0.5,
-        source: rec.source || "",
-        evidence_count: rec.evidence_count || 1,
+        confidence: confVal,
+        source: sourceVal,
+        evidence_count: evidenceVal,
         updated_at: now,
-      });
+      };
+      await this.store.insert("semantic_memory", insertValues);
     }
   }
 
@@ -520,15 +524,18 @@ export class MemoryService {
       );
     } else {
       rs.close();
-      await this.store.insert("relation_network", {
+      const relType: string = relationType !== undefined ? relationType : "";
+      const notesVal: string = notes !== undefined ? notes : "";
+      const insertValues: relationalStore.ValuesBucket = {
         person_name: name,
-        relation_type: relationType || "",
+        relation_type: relType,
         first_mentioned: now,
         last_mentioned: now,
         mention_count: 1,
         sentiment: sentiment,
-        notes: notes || "",
-      });
+        notes: notesVal,
+      };
+      await this.store.insert("relation_network", insertValues);
     }
   }
 
