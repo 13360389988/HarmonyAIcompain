@@ -306,15 +306,18 @@ export class MemoryService {
       const oldConf = rs.getDouble(rs.getColumnIndex("confidence"));
       const newConf = Math.min(1.0, oldConf + 0.1);
       rs.close();
+      const confValue: number = rec.confidence !== undefined ? rec.confidence : newConf;
+      const sourceValue: string = rec.source !== undefined ? rec.source : "";
+      const updateValues: relationalStore.ValuesBucket = {
+        value: rec.value,
+        confidence: confValue,
+        source: sourceValue,
+        evidence_count: evidence,
+        updated_at: now,
+      };
       await this.store.update(
         "semantic_memory",
-        {
-          value: rec.value,
-          confidence: rec.confidence || newConf,
-          source: rec.source || "",
-          evidence_count: evidence,
-          updated_at: now,
-        } as relationalStore.ValuesBucket,
+        updateValues,
         "id = ?",
         [id]
       );
@@ -417,14 +420,15 @@ export class MemoryService {
 
   async verifyPrediction(id: number, actualResult: string, errorScore: number): Promise<void> {
     const now = Date.now();
+    const updateValues: relationalStore.ValuesBucket = {
+      actual_result: actualResult,
+      verified_at: now,
+      error_score: errorScore,
+      status: "verified",
+    };
     await this.store.update(
       "prediction_memory",
-      {
-        actual_result: actualResult,
-        verified_at: now,
-        error_score: errorScore,
-        status: "verified",
-      } as relationalStore.ValuesBucket,
+      updateValues,
       "id = ?",
       [id]
     );

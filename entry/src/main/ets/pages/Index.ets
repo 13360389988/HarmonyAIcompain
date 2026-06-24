@@ -14,6 +14,10 @@ import {
   EpisodeInfo,
   PatternInfo,
   RelationInfo,
+  ExtractedData,
+  ProfileUpdate,
+  EpisodeUpdate,
+  PersonUpdate,
 } from "../services/ApiService";
 import { NetworkMonitor } from "../services/NetworkMonitor";
 import { OfflineQueue, OfflineMessage } from "../services/OfflineQueue";
@@ -321,8 +325,8 @@ struct ChatPage {
 
     if (extracted.profile_updates) {
       for (let i = 0; i < extracted.profile_updates.length; i++) {
-        const p = extracted.profile_updates[i];
-        const conf = p.confidence ? p.confidence : 0.5;
+        const p: ProfileUpdate = extracted.profile_updates[i];
+        const conf: number = p.confidence !== undefined ? p.confidence : 0.5;
         await this.memory.setSemantic({
           category: p.category,
           key: p.key,
@@ -335,9 +339,9 @@ struct ChatPage {
 
     if (extracted.episodes) {
       for (let i = 0; i < extracted.episodes.length; i++) {
-        const e = extracted.episodes[i];
-        const imp = e.importance ? e.importance : 0.5;
-        const peopleStr = e.people ? JSON.stringify(e.people) : "";
+        const e: EpisodeUpdate = extracted.episodes[i];
+        const imp: number = e.importance !== undefined ? e.importance : 0.5;
+        const peopleStr: string = e.people !== undefined ? JSON.stringify(e.people) : "";
         await this.memory.addEpisodic({
           event_time: Date.now(),
           title: e.title,
@@ -352,8 +356,8 @@ struct ChatPage {
 
     if (extracted.persons) {
       for (let i = 0; i < extracted.persons.length; i++) {
-        const p = extracted.persons[i];
-        const sent = p.sentiment ? p.sentiment : 0;
+        const p: PersonUpdate = extracted.persons[i];
+        const sent: number = p.sentiment !== undefined ? p.sentiment : 0;
         await this.memory.mentionPerson(
           p.name,
           p.relation,

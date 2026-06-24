@@ -214,9 +214,14 @@ export class PatternMiner {
         }
       }
       if (topCount / total >= 0.6 && topCount >= this.MIN_EVIDENCE) {
+        let slotDisplayText = "";
+        if (slot === "morning") slotDisplayText = "上午";
+        else if (slot === "afternoon") slotDisplayText = "下午";
+        else if (slot === "evening") slotDisplayText = "晚上";
+        else if (slot === "night") slotDisplayText = "深夜";
         candidates.push({
           pattern_type: "routine",
-          description: `${slotDisplay[slot]}通常在 ${topLoc} 附近活动`,
+          description: `${slotDisplayText}通常在 ${topLoc} 附近活动`,
           trigger_condition: `时段=${slot}`,
           action: `位置=${topLoc}`,
           frequency: "daily",
