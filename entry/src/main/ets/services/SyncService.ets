@@ -28,6 +28,8 @@ export interface SyncUploadRequest {
 export interface SyncDownloadRequest {
   device_id: string;
 }
+
+export interface SyncHttpResult {
   success: boolean;
   error: string;
   data: string;

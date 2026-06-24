@@ -181,7 +181,13 @@ struct ChatPage {
   }
 
   private updateMessageStatus(id: number, status: string): void {
-    const idx = this.chatList.findIndex(c => c.id === id);
+    let idx = -1;
+    for (let i = 0; i < this.chatList.length; i++) {
+      if (this.chatList[i].id === id) {
+        idx = i;
+        break;
+      }
+    }
     if (idx >= 0) {
       const item = this.chatList[idx];
       const newItem: ChatItem = {
@@ -248,9 +254,10 @@ struct ChatPage {
     const relevantEpisodes: EpisodeInfo[] = [];
     for (let i = 0; i < topEpisodes.length; i++) {
       const e = topEpisodes[i];
+      const desc = e.description ? e.description : "";
       relevantEpisodes.push({
         title: e.title,
-        description: e.description ?? "",
+        description: desc,
         time: new Date(e.event_time).toLocaleString(),
       });
     }
@@ -258,19 +265,22 @@ struct ChatPage {
     const patterns = await this.memory.getAllProcedural();
     const behaviorPatterns: PatternInfo[] = [];
     for (let i = 0; i < patterns.length && i < 5; i++) {
+      const conf = patterns[i].confidence ? patterns[i].confidence : 0.5;
       behaviorPatterns.push({
         description: patterns[i].description,
-        confidence: patterns[i].confidence ?? 0.5,
+        confidence: conf,
       });
     }
 
     const relations = await this.memory.getAllRelations();
     const relationList: RelationInfo[] = [];
     for (let i = 0; i < relations.length && i < 10; i++) {
+      const rel = relations[i].relation_type ? relations[i].relation_type : "acquaintance";
+      const men = relations[i].mention_count ? relations[i].mention_count : 1;
       relationList.push({
         name: relations[i].person_name,
-        relation: relations[i].relation_type ?? "acquaintance",
-        mentions: relations[i].mention_count ?? 1,
+        relation: rel,
+        mentions: men,
       });
     }
 
@@ -312,11 +322,12 @@ struct ChatPage {
     if (extracted.profile_updates) {
       for (let i = 0; i < extracted.profile_updates.length; i++) {
         const p = extracted.profile_updates[i];
+        const conf = p.confidence ? p.confidence : 0.5;
         await this.memory.setSemantic({
           category: p.category,
           key: p.key,
           value: p.value,
-          confidence: p.confidence,
+          confidence: conf,
           source: "chat",
         });
       }
@@ -325,12 +336,14 @@ struct ChatPage {
     if (extracted.episodes) {
       for (let i = 0; i < extracted.episodes.length; i++) {
         const e = extracted.episodes[i];
+        const imp = e.importance ? e.importance : 0.5;
+        const peopleStr = e.people ? JSON.stringify(e.people) : "";
         await this.memory.addEpisodic({
           event_time: Date.now(),
           title: e.title,
           description: e.description,
-          importance: e.importance ?? 0.5,
-          people: e.people ? JSON.stringify(e.people) : undefined,
+          importance: imp,
+          people: peopleStr,
           outcome: e.outcome,
           emotion: extracted.emotion,
         });
@@ -340,10 +353,11 @@ struct ChatPage {
     if (extracted.persons) {
       for (let i = 0; i < extracted.persons.length; i++) {
         const p = extracted.persons[i];
+        const sent = p.sentiment ? p.sentiment : 0;
         await this.memory.mentionPerson(
           p.name,
           p.relation,
-          p.sentiment ?? 0
+          sent
         );
       }
     }
@@ -412,22 +426,30 @@ struct ChatPage {
       }
     }
     if (lastUserMsg) {
-      const idx = this.chatList.findIndex(c => c.id === lastUserMsg!.id);
-      const item = this.chatList[idx];
-      this.chatList[idx] = {
-        id: item.id,
-        role: item.role,
-        text: item.text,
-        time: item.time,
-        status: "pending",
-        offlineId: offlineId,
-        emotion: item.emotion,
-      };
-      const newList: ChatItem[] = [];
+      let idx = -1;
       for (let i = 0; i < this.chatList.length; i++) {
-        newList.push(this.chatList[i]);
+        if (this.chatList[i].id === lastUserMsg!.id) {
+          idx = i;
+          break;
+        }
       }
-      this.chatList = newList;
+      if (idx >= 0) {
+        const item = this.chatList[idx];
+        this.chatList[idx] = {
+          id: item.id,
+          role: item.role,
+          text: item.text,
+          time: item.time,
+          status: "pending",
+          offlineId: offlineId,
+          emotion: item.emotion,
+        };
+        const newList: ChatItem[] = [];
+        for (let i = 0; i < this.chatList.length; i++) {
+          newList.push(this.chatList[i]);
+        }
+        this.chatList = newList;
+      }
     }
     this.addMessage("system", "后端未响应，消息已暂存，联网后将自动发送。");
     this.refreshPendingCount();
@@ -461,7 +483,13 @@ struct ChatPage {
           const ctx = await this.buildContext(msg.text);
           const result = await sendChatWithContext(ctx);
 
-          const chatItem = this.chatList.find(c => c.offlineId === msg.id);
+          let chatItem: ChatItem | null = null;
+          for (let j = 0; j < this.chatList.length; j++) {
+            if (this.chatList[j].offlineId === msg.id) {
+              chatItem = this.chatList[j];
+              break;
+            }
+          }
           if (chatItem) this.updateMessageStatus(chatItem.id, "sent");
 
           this.addMessage("ai", result.reply, "sent");

@@ -165,8 +165,14 @@ struct InsightsPage {
     for (let i = 0; i < dateEntries.length; i++) {
       const date = dateEntries[i][0];
       const v = dateEntries[i][1];
-      const speedSum = v.speeds.reduce((a, b) => a + b, 0);
-      const deleteSum = v.deleteRatios.reduce((a, b) => a + b, 0);
+      let speedSum = 0;
+      for (let j = 0; j < v.speeds.length; j++) {
+        speedSum += v.speeds[j];
+      }
+      let deleteSum = 0;
+      for (let j = 0; j < v.deleteRatios.length; j++) {
+        deleteSum += v.deleteRatios[j];
+      }
       items.push({
         date: date.slice(5),
         speed: speedSum / Math.max(1, v.speeds.length),

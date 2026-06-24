@@ -125,15 +125,21 @@ export class FtsSearch {
 
     // 搜索情景记忆
     const epResults = await this.searchEpisodic(ftsQuery, limit);
-    results.push(...epResults);
+    for (let i = 0; i < epResults.length; i++) {
+      results.push(epResults[i]);
+    }
 
     // 搜索短期记忆
     const stResults = await this.searchShortTerm(ftsQuery, limit);
-    results.push(...stResults);
+    for (let i = 0; i < stResults.length; i++) {
+      results.push(stResults[i]);
+    }
 
     // 搜索语义记忆
     const semResults = await this.searchSemantic(ftsQuery, limit);
-    results.push(...semResults);
+    for (let i = 0; i < semResults.length; i++) {
+      results.push(semResults[i]);
+    }
 
     // 按 rank 排序（越小越相关）
     results.sort((a, b) => a.rank - b.rank);
@@ -255,10 +261,19 @@ export class FtsSearch {
     if (!trimmed) return "";
 
     // 按非中文字符分割
-    const chars = Array.from(trimmed).filter(c => c.trim());
+    const rawChars = Array.from(trimmed);
+    const chars: string[] = [];
+    for (let i = 0; i < rawChars.length; i++) {
+      if (rawChars[i].trim()) {
+        chars.push(rawChars[i]);
+      }
+    }
 
     // 单字查询（OR 连接，加前缀 *）
-    const singleCharQueries = chars.map(c => `"${c}"*`);
+    const singleCharQueries: string[] = [];
+    for (let i = 0; i < chars.length; i++) {
+      singleCharQueries.push(`"${chars[i]}"*`);
+    }
 
     // 双字组合查询（提高精度）
     const bigramQueries: string[] = [];
@@ -267,10 +282,21 @@ export class FtsSearch {
     }
 
     // 组合：单字 OR 双字
-    const allQueries = [...singleCharQueries, ...bigramQueries];
+    const allQueries: string[] = [];
+    for (let i = 0; i < singleCharQueries.length; i++) {
+      allQueries.push(singleCharQueries[i]);
+    }
+    for (let i = 0; i < bigramQueries.length; i++) {
+      allQueries.push(bigramQueries[i]);
+    }
 
     // FTS5 查询长度限制
-    return allQueries.slice(0, 20).join(" OR ");
+    const limit = Math.min(20, allQueries.length);
+    const resultArr: string[] = [];
+    for (let i = 0; i < limit; i++) {
+      resultArr.push(allQueries[i]);
+    }
+    return resultArr.join(" OR ");
   }
 
   /** 重建所有索引（数据迁移或修复时用） */

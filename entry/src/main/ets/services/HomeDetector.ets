@@ -179,8 +179,13 @@ export class HomeDetector {
   }
 
   private notify(): void {
-    this.callbacks.forEach(cb => {
-      try { cb(this._atHome); } catch { /* 忽略 */ }
-    });
+    const cbArray = Array.from(this.callbacks);
+    for (let i = 0; i < cbArray.length; i++) {
+      try {
+        cbArray[i](this._atHome);
+      } catch (e) {
+        // 忽略
+      }
+    }
   }
 }

@@ -1,11 +1,11 @@
-import UIAbility from "@ohos.app.ability.UIAbility";
+import { BackupExtensionAbility } from "@kit.BackupKit";
 
-export default class EntryBackupAbility extends UIAbility {
-  onCreate(): void {
-    console.info("[Backup] EntryBackupAbility created");
+export default class EntryBackupAbility extends BackupExtensionAbility {
+  onBackup(): void {
+    console.info("[Backup] EntryBackupAbility onBackup");
   }
 
-  onDestroy(): void {
-    console.info("[Backup] EntryBackupAbility destroyed");
+  onRestore(): void {
+    console.info("[Backup] EntryBackupAbility onRestore");
   }
 }

@@ -184,10 +184,6 @@ export interface SummarizeRequest {
   conversation_text: string;
 }
 
-export interface SummarizeRequest {
-  conversation_text: string;
-}
-
 export function summarizeConversation(text: string): Promise<SummaryResult> {
   const req: SummarizeRequest = { conversation_text: text };
   return postJSON<SummaryResult>("/summarize", req);
@@ -220,7 +216,9 @@ export function sendChatMessage(text: string): Promise<string> {
     behavior_patterns: [],
     relations: [],
     pending_predictions: [],
-  }).then(result => result.reply);
+  }).then((result: ChatResult) => {
+    return result.reply;
+  });
 }
 
 export interface WsMessage {

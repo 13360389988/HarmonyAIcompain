@@ -154,7 +154,8 @@ export class MemoryDatabase {
       "relation_network",
     ];
     const stats: Record<string, number> = {};
-    for (const t of tables) {
+    for (let i = 0; i < tables.length; i++) {
+      const t = tables[i];
       const rs = await store.querySql(`SELECT COUNT(*) as cnt FROM ${t}`);
       if (rs.goToFirstRow()) {
         stats[t] = rs.getLong(rs.getColumnIndex("cnt"));

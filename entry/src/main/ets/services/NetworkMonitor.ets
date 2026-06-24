@@ -53,8 +53,13 @@ export class NetworkMonitor {
   }
 
   private notify(): void {
-    this.callbacks.forEach(cb => {
-      try { cb(this._online); } catch (e) { /* 忽略回调异常 */ }
-    });
+    const cbArray = Array.from(this.callbacks);
+    for (let i = 0; i < cbArray.length; i++) {
+      try {
+        cbArray[i](this._online);
+      } catch (e) {
+        // 忽略回调异常
+      }
+    }
   }
 }

@@ -34,18 +34,30 @@ export class PredictionService {
   async generate(currentLocation: string = ""): Promise<PredictionCard[]> {
     const userProfile = await this.memory.getFullProfile();
     const patterns = await this.memory.getAllProcedural();
-    const behaviorPatterns: PatternInfo[] = patterns.slice(0, 10).map(p => ({
-      description: p.description,
-      confidence: p.confidence ?? 0.5,
-    }));
+    const behaviorPatterns: PatternInfo[] = [];
+    const patternCount = Math.min(10, patterns.length);
+    for (let i = 0; i < patternCount; i++) {
+      const p = patterns[i];
+      const conf = p.confidence ? p.confidence : 0.5;
+      behaviorPatterns.push({
+        description: p.description,
+        confidence: conf,
+      });
+    }
 
     const now = Date.now();
     const since = now - 24 * 60 * 60 * 1000;
     const logs = await this.memory.getBehaviorByRange(since, now);
-    const recentBehaviors: RecentBehavior[] = logs.slice(-20).map(l => ({
-      time: new Date(l.timestamp).toLocaleString(),
-      action: `${l.action_type}${l.location ? `@${l.location}` : ""}`,
-    }));
+    const recentBehaviors: RecentBehavior[] = [];
+    const startIdx = Math.max(0, logs.length - 20);
+    for (let i = startIdx; i < logs.length; i++) {
+      const l = logs[i];
+      const locStr = l.location ? `@${l.location}` : "";
+      recentBehaviors.push({
+        time: new Date(l.timestamp).toLocaleString(),
+        action: `${l.action_type}${locStr}`,
+      });
+    }
 
     const result: PredictionResult = await predictNext({
       current_time: new Date().toLocaleString(),
@@ -56,7 +68,7 @@ export class PredictionService {
     });
 
     const cards: PredictionCard[] = [];
-    const predictions = result.predictions ?? [];
+    const predictions = result.predictions ? result.predictions : [];
     for (let i = 0; i < predictions.length; i++) {
       const p = predictions[i];
       const targetTime = this.parseTime(p.target_time);
@@ -116,14 +128,17 @@ export class PredictionService {
     for (let i = 0; i < pending.length; i++) {
       const p = pending[i];
       if (p.target_time >= now && result.length < 5) {
+        const conf = p.confidence ? p.confidence : 0.5;
+        const reasoning = p.reasoning ? p.reasoning : "";
+        const status = p.status ? p.status : "pending";
         result.push({
           id: p.id,
           targetTime: new Date(p.target_time).toLocaleString(),
           type: p.prediction_type,
           content: p.prediction,
-          confidence: p.confidence ?? 0.5,
-          reasoning: p.reasoning ?? "",
-          status: p.status ?? "pending",
+          confidence: conf,
+          reasoning: reasoning,
+          status: status,
         });
       }
     }
@@ -190,8 +205,20 @@ export class PredictionService {
       return 0;
     }
 
-    const expectedWords = expected.split(/[\s,，。.]+/).filter(w => w.length > 1);
-    const actualWords = actualLower.split(/[\s,，。.]+/).filter(w => w.length > 1);
+    const rawExpected = expected.split(/[\s,，。.]+/);
+    const expectedWords: string[] = [];
+    for (let i = 0; i < rawExpected.length; i++) {
+      if (rawExpected[i].length > 1) {
+        expectedWords.push(rawExpected[i]);
+      }
+    }
+    const rawActual = actualLower.split(/[\s,，。.]+/);
+    const actualWords: string[] = [];
+    for (let i = 0; i < rawActual.length; i++) {
+      if (rawActual[i].length > 1) {
+        actualWords.push(rawActual[i]);
+      }
+    }
     if (expectedWords.length === 0 || actualWords.length === 0) return 0.8;
 
     let overlap = 0;

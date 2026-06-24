@@ -74,7 +74,8 @@ export class PushScheduler {
     } catch { /* 权限被拒绝也能用 reminder */ }
 
     // 注册每日定时推送
-    for (const slot of DAILY_SLOTS) {
+    for (let i = 0; i < DAILY_SLOTS.length; i++) {
+      const slot = DAILY_SLOTS[i];
       const id = await this.registerDailyReminder(slot);
       this.reminderIds.push(id);
     }
@@ -83,9 +84,9 @@ export class PushScheduler {
 
   /** 取消所有推送 */
   async cancelAll(): Promise<void> {
-    for (const id of this.reminderIds) {
+    for (let i = 0; i < this.reminderIds.length; i++) {
       try {
-        await reminderAgent.cancelReminder(id);
+        await reminderAgent.cancelReminder(this.reminderIds[i]);
       } catch { /* 忽略 */ }
     }
     this.reminderIds = [];
@@ -163,11 +164,24 @@ export class PushScheduler {
     const patterns = await this.memory.getAllProcedural();
 
     try {
+      const relevantEpisodes: { title: string; description: string }[] = [];
+      for (let i = 0; i < episodes.length; i++) {
+        const e = episodes[i];
+        const desc = e.description ? e.description : "";
+        relevantEpisodes.push({ title: e.title, description: desc });
+      }
+      const behaviorPatterns: { description: string; confidence: number }[] = [];
+      const patternCount = Math.min(5, patterns.length);
+      for (let i = 0; i < patternCount; i++) {
+        const p = patterns[i];
+        const conf = p.confidence ? p.confidence : 0.5;
+        behaviorPatterns.push({ description: p.description, confidence: conf });
+      }
       const result = await generateMorningGreeting({
         current_time: new Date().toLocaleString(),
         user_profile: profile,
-        relevant_episodes: episodes.map(e => ({ title: e.title, description: e.description ?? "" })),
-        behavior_patterns: patterns.slice(0, 5).map(p => ({ description: p.description, confidence: p.confidence ?? 0.5 })),
+        relevant_episodes: relevantEpisodes,
+        behavior_patterns: behaviorPatterns,
       });
       return { title: "早安", content: result.content };
     } catch {
@@ -184,8 +198,14 @@ export class PushScheduler {
         return { title: "预测", content: "暂无足够数据预测你的动向，多用几天看看" };
       }
       // 取置信度最高的一条
-      const top = cards.reduce((a, b) => a.confidence > b.confidence ? a : b);
-      const typeText = { location: "行踪", behavior: "行为", emotion: "情绪" }[top.type] ?? "动向";
+      let top = cards[0];
+      for (let i = 1; i < cards.length; i++) {
+        if (cards[i].confidence > top.confidence) {
+          top = cards[i];
+        }
+      }
+      const typeMap: Record<string, string> = { location: "行踪", behavior: "行为", emotion: "情绪" };
+      const typeText = typeMap[top.type] ? typeMap[top.type] : "动向";
       return {
         title: "预测",
         content: `我猜你接下来${typeText}：${top.content}（置信度 ${(top.confidence * 100).toFixed(0)}%）`,
@@ -265,11 +285,24 @@ export class PushScheduler {
     const patterns = await this.memory.getAllProcedural();
 
     try {
+      const relevantEpisodes: { title: string; description: string }[] = [];
+      for (let i = 0; i < episodes.length; i++) {
+        const e = episodes[i];
+        const desc = e.description ? e.description : "";
+        relevantEpisodes.push({ title: e.title, description: desc });
+      }
+      const behaviorPatterns: { description: string; confidence: number }[] = [];
+      const patternCount = Math.min(5, patterns.length);
+      for (let i = 0; i < patternCount; i++) {
+        const p = patterns[i];
+        const conf = p.confidence ? p.confidence : 0.5;
+        behaviorPatterns.push({ description: p.description, confidence: conf });
+      }
       const result = await generateEveningReview({
         current_time: new Date().toLocaleString(),
         user_profile: profile,
-        relevant_episodes: episodes.map(e => ({ title: e.title, description: e.description ?? "" })),
-        behavior_patterns: patterns.slice(0, 5).map(p => ({ description: p.description, confidence: p.confidence ?? 0.5 })),
+        relevant_episodes: relevantEpisodes,
+        behavior_patterns: behaviorPatterns,
       });
       return { title: "晚间复盘", content: result.content };
     } catch {
@@ -299,7 +332,14 @@ export class PushScheduler {
   /** 检测到负面情绪时触发 */
   async triggerEmotionCare(emotion: string): Promise<void> {
     const negative = ["焦虑", "疲惫", "低落", "烦躁", "压力", "难过", "伤心"];
-    if (!negative.some(n => emotion.includes(n))) return;
+    let hasNegative = false;
+    for (let i = 0; i < negative.length; i++) {
+      if (emotion.includes(negative[i])) {
+        hasNegative = true;
+        break;
+      }
+    }
+    if (!hasNegative) return;
 
     await this.pushNow("情绪关怀", `感觉到你有些${emotion}，要不要和知心聊聊？我一直都在`, "care");
   }
@@ -341,7 +381,13 @@ export class PushScheduler {
     if (profile["偏好"]) parts.push(`记得做自己喜欢的事`);
 
     // 提及规律
-    const routine = patterns.find(p => p.pattern_type === "routine");
+    let routine: any = null;
+    for (let i = 0; i < patterns.length; i++) {
+      if (patterns[i].pattern_type === "routine") {
+        routine = patterns[i];
+        break;
+      }
+    }
     if (routine) parts.push(`按你的规律，${routine.description}`);
 
     parts.push("有什么想聊的随时找我");

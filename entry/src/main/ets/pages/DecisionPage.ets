@@ -109,7 +109,13 @@ struct DecisionPage {
           Text(`${idx + 1}. ${opt}`).fontSize(13).fontColor("#333333").layoutWeight(1)
           Text("✕").fontSize(14).fontColor("#F44336")
             .onClick(() => {
-              this.options = this.options.filter((_, i) => i !== idx);
+              const newOptions: string[] = [];
+              for (let i = 0; i < this.options.length; i++) {
+                if (i !== idx) {
+                  newOptions.push(this.options[i]);
+                }
+              }
+              this.options = newOptions;
             })
         }
         .width("100%")
@@ -262,10 +268,12 @@ struct DecisionPage {
       const similar = await this.memory.searchEpisodic("决策");
       const similarDecisions: SimilarDecision[] = [];
       for (let i = 0; i < similar.length && i < 5; i++) {
+        const choice = similar[i].description ? similar[i].description : "";
+        const outcome = similar[i].outcome ? similar[i].outcome : "未知";
         similarDecisions.push({
           question: similar[i].title,
-          choice: similar[i].description ?? "",
-          outcome: similar[i].outcome ?? "未知",
+          choice: choice,
+          outcome: outcome,
         });
       }
 
