@@ -319,7 +319,8 @@ struct ChatPage {
     const chatData: ChatLogData = {
       user_msg: userMessage,
       ai_reply: aiReply,
-      emotion: extracted.emotion || "",
+      emotion: extracted.emotion !== undefined ? extracted.emotion : "",
+      synced: false,
     };
     await this.memory.logBehavior("chat", chatData);
 

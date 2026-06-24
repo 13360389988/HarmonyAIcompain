@@ -452,16 +452,18 @@ export class MemoryService {
     };
   }
 
-  // Behavior log
-  async logBehavior(actionType: string, data: Record<string, string | number | boolean>, location?: string): Promise<void> {
+  async logBehavior(actionType: string, data: object, location?: string): Promise<void> {
     const now = Date.now();
-    await this.store.insert("behavior_log", {
+    const dataStr = JSON.stringify(data);
+    const locStr: string = location !== undefined ? location : "";
+    const insertValues: relationalStore.ValuesBucket = {
       timestamp: now,
       action_type: actionType,
-      data: JSON.stringify(data),
-      location: location || "",
+      data: dataStr,
+      location: locStr,
       created_at: now,
-    });
+    };
+    await this.store.insert("behavior_log", insertValues);
   }
 
   async getBehaviorByRange(start: number, end: number, actionType?: string): Promise<BehaviorLog[]> {
@@ -501,15 +503,18 @@ export class MemoryService {
       const id = rs.getLong(rs.getColumnIndex("id"));
       const count = rs.getLong(rs.getColumnIndex("mention_count")) + 1;
       rs.close();
+      const relType: string = relationType !== undefined ? relationType : "";
+      const notesVal: string = notes !== undefined ? notes : "";
+      const updateValues: relationalStore.ValuesBucket = {
+        last_mentioned: now,
+        mention_count: count,
+        relation_type: relType,
+        sentiment: sentiment,
+        notes: notesVal,
+      };
       await this.store.update(
         "relation_network",
-        {
-          last_mentioned: now,
-          mention_count: count,
-          relation_type: relationType || "",
-          sentiment: sentiment,
-          notes: notes || "",
-        } as relationalStore.ValuesBucket,
+        updateValues,
         "id = ?",
         [id]
       );

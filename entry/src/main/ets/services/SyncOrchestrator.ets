@@ -163,7 +163,7 @@ export class SyncOrchestrator {
         patterns_mined: patternsMined,
         predictions_verified: predictionsVerified,
         new_predictions: newPredictions,
-        sync_uploaded: syncUploaded ? 1 : 0,
+        sync_uploaded: syncUploaded,
         errors: errors.length,
       };
       await this.memory.logBehavior("sync_complete", logData);
