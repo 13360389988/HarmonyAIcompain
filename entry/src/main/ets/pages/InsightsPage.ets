@@ -5,6 +5,8 @@
  */
 
 import { MemoryService, BehaviorLog, RelationRecord, ProceduralRecord } from "../services/MemoryService";
+import { AppColors, AppRadius } from "../theme/Theme";
+import { TabBar } from "../components/TabBar";
 
 interface SleepDataItem {
   day: string;
@@ -134,7 +136,7 @@ struct InsightsPage {
       const entry = byLoc.get(log.location)!;
       entry.count++;
       const slot = this.timeToSlot(new Date(log.timestamp).getHours());
-      const prev = entry.slots[slot] ?? 0;
+      const prev = entry.slots[slot] !== undefined ? entry.slots[slot] : 0;
       entry.slots[slot] = prev + 1;
     }
 
@@ -197,10 +199,10 @@ struct InsightsPage {
   build() {
     Column() {
       Row() {
-        Text("📊 行为洞察").fontSize(20).fontWeight(FontWeight.Bold).fontColor("#FFFFFF")
+        Text("行为洞察").fontSize(18).fontWeight(FontWeight.Bold).fontColor("#FFFFFF")
       }
       .width("100%").height(48)
-      .backgroundColor("#00695C")
+      .backgroundColor(AppColors.HEADER_BG)
       .justifyContent(FlexAlign.Center)
 
       Scroll() {
@@ -208,9 +210,9 @@ struct InsightsPage {
           ForEach(this.tabs, (tab: string, idx: number) => {
             Text(tab)
               .fontSize(13)
-              .fontColor(this.activeTab === idx ? "#FFFFFF" : "#666666")
+              .fontColor(this.activeTab === idx ? AppColors.BG_CARD : AppColors.TEXT_SECONDARY)
               .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-              .backgroundColor(this.activeTab === idx ? "#00695C" : "#EEEEEE")
+              .backgroundColor(this.activeTab === idx ? AppColors.PRIMARY : AppColors.BG_INPUT)
               .borderRadius(14)
               .margin({ left: 4, right: 4 })
               .onClick(() => { this.activeTab = idx; })
@@ -221,7 +223,7 @@ struct InsightsPage {
       .scrollBar(BarState.Off)
       .height(40)
 
-      Divider().height(0.5).color("#E0E0E0")
+      Divider().height(0.5).color(AppColors.BORDER)
 
       Scroll() {
         Column() {
@@ -233,16 +235,18 @@ struct InsightsPage {
         }.width("100%").padding({ bottom: 20 })
       }
       .layoutWeight(1).scrollBar(BarState.Off)
+
+      TabBar({ activeIndex: 3 })
     }
     .width("100%").height("100%")
-    .backgroundColor("#FAFAFA")
+    .backgroundColor(AppColors.BG_PAGE)
   }
 
   @Builder
   sleepTab() {
     Column() {
-      Text("最近 14 天起床时间").fontSize(16).fontWeight(FontWeight.Bold).fontColor("#333333")
-      Text("根据每日首次活跃时间推断").fontSize(12).fontColor("#999999").margin({ top: 4 })
+      Text("最近 14 天起床时间").fontSize(16).fontWeight(FontWeight.Bold).fontColor(AppColors.TEXT_PRIMARY)
+      Text("根据每日首次活跃时间推断").fontSize(12).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 4 })
 
       if (this.sleepData.length === 0) {
         this.emptyState("数据不足，多用几天再来")
@@ -255,9 +259,9 @@ struct InsightsPage {
                 .height(this.sleepBarHeight(d.wakeHour))
                 .backgroundColor(this.sleepBarColor(d.wakeHour))
                 .borderRadius({ topLeft: 4, topRight: 4 })
-              Text(d.day).fontSize(9).fontColor("#999999").margin({ top: 4 })
+              Text(d.day).fontSize(9).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 4 })
               Text(`${Math.floor(d.wakeHour)}:${Math.round((d.wakeHour % 1) * 60).toString().padStart(2, "0")}`)
-                .fontSize(9).fontColor("#666666")
+                .fontSize(9).fontColor(AppColors.TEXT_SECONDARY)
             }
             .margin({ left: 4, right: 4 })
             .alignItems(HorizontalAlign.Center)
@@ -280,8 +284,8 @@ struct InsightsPage {
   @Builder
   emotionTab() {
     Column() {
-      Text("情绪热力图（最近 30 天）").fontSize(16).fontWeight(FontWeight.Bold).fontColor("#333333")
-      Text("星期 × 时段的情绪分布").fontSize(12).fontColor("#999999").margin({ top: 4 })
+      Text("情绪热力图（最近 30 天）").fontSize(16).fontWeight(FontWeight.Bold).fontColor(AppColors.TEXT_PRIMARY)
+      Text("星期 × 时段的情绪分布").fontSize(12).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 4 })
 
       if (this.emotionHeatmap.length === 0) {
         this.emptyState("还没有情绪数据")
@@ -289,15 +293,15 @@ struct InsightsPage {
         Row() {
           Text("").width(50)
           ForEach(["深夜", "上午", "下午", "晚上"], (slot: string) => {
-            Text(slot).fontSize(11).fontColor("#666666").layoutWeight(1).textAlign(TextAlign.Center)
+            Text(slot).fontSize(11).fontColor(AppColors.TEXT_SECONDARY).layoutWeight(1).textAlign(TextAlign.Center)
           })
         }
         .width("100%").padding({ top: 12, bottom: 4 })
 
         ForEach([1, 2, 3, 4, 5, 6, 0], (wd: number) => {
           Row() {
-            Text(["日", "一", "二", "三", "四", "五", "六"][wd])
-              .fontSize(11).fontColor("#666666").width(50)
+            Text(this.weekdayText(wd))
+              .fontSize(11).fontColor(AppColors.TEXT_SECONDARY).width(50)
             ForEach([0, 4, 8, 12, 16, 20], (h: number) => {
               this.heatmapCell(wd, h)
             })
@@ -316,7 +320,7 @@ struct InsightsPage {
       if (this.hasHeatmapCell(weekday, hour)) {
         Text(this.getHeatmapEmotion(weekday, hour).slice(0, 2))
           .fontSize(10)
-          .fontColor("#FFFFFF")
+          .fontColor(AppColors.BG_CARD)
       } else {
         Text("·").fontSize(10).fontColor("#CCCCCC")
       }
@@ -324,7 +328,7 @@ struct InsightsPage {
     .layoutWeight(1)
     .height(32)
     .margin(2)
-    .backgroundColor(this.hasHeatmapCell(weekday, hour) ? this.emotionColor(this.getHeatmapEmotion(weekday, hour)) : "#F5F5F5")
+    .backgroundColor(this.hasHeatmapCell(weekday, hour) ? this.emotionColor(this.getHeatmapEmotion(weekday, hour)) : AppColors.BG_INPUT)
     .borderRadius(4)
     .justifyContent(FlexAlign.Center)
   }
@@ -350,17 +354,17 @@ struct InsightsPage {
   @Builder
   relationTab() {
     Column() {
-      Text("社交关系网").fontSize(16).fontWeight(FontWeight.Bold).fontColor("#333333")
-      Text("按提及频率排列").fontSize(12).fontColor("#999999").margin({ top: 4 })
+      Text("社交关系网").fontSize(16).fontWeight(FontWeight.Bold).fontColor(AppColors.TEXT_PRIMARY)
+      Text("按提及频率排列").fontSize(12).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 4 })
 
       if (this.relations.length === 0) {
         this.emptyState("还没有记录到社交关系")
       } else {
         Column() {
           Text("你")
-            .fontSize(16).fontColor("#FFFFFF")
+            .fontSize(16).fontColor(AppColors.BG_CARD)
             .width(60).height(60)
-            .backgroundColor("#1677FF")
+            .backgroundColor(AppColors.PRIMARY)
             .borderRadius(30)
             .textAlign(TextAlign.Center)
         }
@@ -371,29 +375,29 @@ struct InsightsPage {
         ForEach(this.relations.slice(0, 20), (r: RelationRecord) => {
           Row() {
             Text(r.person_name.charAt(0))
-              .fontSize(14).fontColor("#FFFFFF")
+              .fontSize(14).fontColor(AppColors.BG_CARD)
               .width(32).height(32)
               .backgroundColor(this.relationColor(r.relation_type))
               .borderRadius(16)
               .textAlign(TextAlign.Center)
 
             Column() {
-              Text(r.person_name).fontSize(14).fontColor("#333333")
-              Text(r.relation_type || "关系不明").fontSize(11).fontColor("#999999")
+              Text(r.person_name).fontSize(14).fontColor(AppColors.TEXT_PRIMARY)
+              Text(r.relation_type || "关系不明").fontSize(11).fontColor(AppColors.TEXT_TERTIARY)
             }
             .layoutWeight(1).alignItems(HorizontalAlign.Start).margin({ left: 10 })
 
             Row() {
               ForEach(this.range(Math.min(5, r.mention_count || 0)), () => {
-                Text("█").fontSize(10).fontColor("#1677FF")
+                Text("█").fontSize(10).fontColor(AppColors.PRIMARY)
               })
             }
-            Text(`${r.mention_count}`).fontSize(11).fontColor("#999999").margin({ left: 4 })
+            Text(`${r.mention_count}`).fontSize(11).fontColor(AppColors.TEXT_TERTIARY).margin({ left: 4 })
           }
           .width("100%")
           .padding(10)
-          .backgroundColor("#FFFFFF")
-          .borderRadius(8)
+          .backgroundColor(AppColors.BG_CARD)
+          .borderRadius(AppRadius.SM)
           .margin({ top: 4 })
         }, (r: RelationRecord) => r.id.toString())
       }
@@ -405,8 +409,8 @@ struct InsightsPage {
   @Builder
   locationTab() {
     Column() {
-      Text("高频位置（最近 30 天）").fontSize(16).fontWeight(FontWeight.Bold).fontColor("#333333")
-      Text("按时段统计位置分布").fontSize(12).fontColor("#999999").margin({ top: 4 })
+      Text("高频位置（最近 30 天）").fontSize(16).fontWeight(FontWeight.Bold).fontColor(AppColors.TEXT_PRIMARY)
+      Text("按时段统计位置分布").fontSize(12).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 4 })
 
       if (this.locationData.length === 0) {
         this.emptyState("还没有位置数据")
@@ -415,29 +419,29 @@ struct InsightsPage {
           Column() {
             Row() {
               Text("📍").fontSize(16)
-              Text(loc.location).fontSize(14).fontColor("#333333").layoutWeight(1).margin({ left: 6 })
-              Text(`${loc.count} 次`).fontSize(12).fontColor("#999999")
+              Text(loc.location).fontSize(14).fontColor(AppColors.TEXT_PRIMARY).layoutWeight(1).margin({ left: 6 })
+              Text(`${loc.count} 次`).fontSize(12).fontColor(AppColors.TEXT_TERTIARY)
             }.width("100%")
 
             Row() {
               ForEach(["深夜", "上午", "下午", "晚上"], (slot: string) => {
                 Column() {
-                  Text(slot).fontSize(10).fontColor("#999999")
-                  Text(`${loc.slots[slot] ?? 0}`).fontSize(11).fontColor("#1677FF")
+                  Text(slot).fontSize(10).fontColor(AppColors.TEXT_TERTIARY)
+                  Text(`${loc.slots[slot] !== undefined ? loc.slots[slot] : 0}`).fontSize(11).fontColor(AppColors.PRIMARY)
                 }
                 .layoutWeight(1).alignItems(HorizontalAlign.Center)
               })
             }
             .width("100%")
             .padding({ top: 8, bottom: 8 })
-            .backgroundColor("#F5F5F5")
+            .backgroundColor(AppColors.BG_INPUT)
             .borderRadius(6)
             .margin({ top: 6 })
           }
           .width("100%")
           .padding(12)
-          .backgroundColor("#FFFFFF")
-          .borderRadius(8)
+          .backgroundColor(AppColors.BG_CARD)
+          .borderRadius(AppRadius.SM)
           .margin({ top: 6 })
           .alignItems(HorizontalAlign.Start)
         }, (loc: LocationDataItem) => loc.location)
@@ -450,13 +454,13 @@ struct InsightsPage {
   @Builder
   typingTab() {
     Column() {
-      Text("打字节奏（最近 14 天）").fontSize(16).fontWeight(FontWeight.Bold).fontColor("#333333")
-      Text("速度与删除率反映心理状态").fontSize(12).fontColor("#999999").margin({ top: 4 })
+      Text("打字节奏（最近 14 天）").fontSize(16).fontWeight(FontWeight.Bold).fontColor(AppColors.TEXT_PRIMARY)
+      Text("速度与删除率反映心理状态").fontSize(12).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 4 })
 
       if (this.typingData.length === 0) {
         this.emptyState("还没有打字数据")
       } else {
-        Text("打字速度（字/秒）").fontSize(13).fontColor("#666666").margin({ top: 12 })
+        Text("打字速度（字/秒）").fontSize(13).fontColor(AppColors.TEXT_SECONDARY).margin({ top: 12 })
         Row() {
           ForEach(this.typingData, (d: TypingDataItem) => {
             Column() {
@@ -465,7 +469,7 @@ struct InsightsPage {
                 .height(Math.min(80, d.speed * 20))
                 .backgroundColor("#4CAF50")
                 .borderRadius({ topLeft: 4, topRight: 4 })
-              Text(d.date).fontSize(8).fontColor("#999999").margin({ top: 2 })
+              Text(d.date).fontSize(8).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 2 })
             }
             .margin({ left: 3, right: 3 })
             .alignItems(HorizontalAlign.Center)
@@ -475,7 +479,7 @@ struct InsightsPage {
         .padding({ top: 12 })
         .alignItems(VerticalAlign.Bottom)
 
-        Text("删除率").fontSize(13).fontColor("#666666").margin({ top: 16 })
+        Text("删除率").fontSize(13).fontColor(AppColors.TEXT_SECONDARY).margin({ top: 16 })
         Row() {
           ForEach(this.typingData, (d: TypingDataItem) => {
             Column() {
@@ -484,7 +488,7 @@ struct InsightsPage {
                 .height(Math.min(80, d.deleteRatio * 200))
                 .backgroundColor(this.deleteRatioColor(d.deleteRatio))
                 .borderRadius({ topLeft: 4, topRight: 4 })
-              Text(d.date).fontSize(8).fontColor("#999999").margin({ top: 2 })
+              Text(d.date).fontSize(8).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 2 })
             }
             .margin({ left: 3, right: 3 })
             .alignItems(HorizontalAlign.Center)
@@ -496,13 +500,13 @@ struct InsightsPage {
 
         if (this.typingData.length >= 3) {
           Column() {
-            Text("💡 洞察").fontSize(13).fontWeight(FontWeight.Bold).fontColor("#333333")
-            Text(this.typingInsight()).fontSize(12).fontColor("#666666").margin({ top: 4 })
+            Text("💡 洞察").fontSize(13).fontWeight(FontWeight.Bold).fontColor(AppColors.TEXT_PRIMARY)
+            Text(this.typingInsight()).fontSize(12).fontColor(AppColors.TEXT_SECONDARY).margin({ top: 4 })
           }
           .width("100%")
           .padding(12)
-          .backgroundColor("#E3F2FD")
-          .borderRadius(8)
+          .backgroundColor(AppColors.BG_TAG)
+          .borderRadius(AppRadius.SM)
           .margin({ top: 16 })
           .alignItems(HorizontalAlign.Start)
         }
@@ -516,7 +520,7 @@ struct InsightsPage {
   emptyState(text: string) {
     Column() {
       Text("📭").fontSize(48)
-      Text(text).fontSize(13).fontColor("#999999").margin({ top: 12 })
+      Text(text).fontSize(13).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 12 })
     }
     .width("100%").padding({ top: 60, bottom: 60 })
     .alignItems(HorizontalAlign.Center)
@@ -525,13 +529,13 @@ struct InsightsPage {
   @Builder
   statRow(label: string, value: string) {
     Row() {
-      Text(label).fontSize(13).fontColor("#666666")
+      Text(label).fontSize(13).fontColor(AppColors.TEXT_SECONDARY)
       Blank()
-      Text(value).fontSize(14).fontColor("#333333").fontWeight(FontWeight.Bold)
+      Text(value).fontSize(14).fontColor(AppColors.TEXT_PRIMARY).fontWeight(FontWeight.Bold)
     }
     .width("100%")
     .padding({ left: 12, right: 12, top: 10, bottom: 10 })
-    .backgroundColor("#FFFFFF")
+    .backgroundColor(AppColors.BG_CARD)
     .borderRadius(6)
     .margin({ top: 6 })
   }
@@ -621,5 +625,15 @@ struct InsightsPage {
       result.push(i);
     }
     return result;
+  }
+
+  private weekdayText(wd: number): string {
+    if (wd === 0) return "日";
+    if (wd === 1) return "一";
+    if (wd === 2) return "二";
+    if (wd === 3) return "三";
+    if (wd === 4) return "四";
+    if (wd === 5) return "五";
+    return "六";
   }
 }

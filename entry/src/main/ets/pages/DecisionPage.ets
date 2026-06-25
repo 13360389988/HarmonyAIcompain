@@ -7,6 +7,8 @@
 import { assistDecision, DecisionResult } from "../services/ApiService";
 import { MemoryService } from "../services/MemoryService";
 import { NetworkMonitor } from "../services/NetworkMonitor";
+import { AppColors, AppRadius } from "../theme/Theme";
+import { TabBar } from "../components/TabBar";
 
 interface RelevantEpisode {
   title: string;
@@ -54,18 +56,18 @@ struct DecisionPage {
   build() {
     Column() {
       Row() {
-        Text("🤔 帮我决策").fontSize(20).fontWeight(FontWeight.Bold).fontColor("#FFFFFF")
+        Text("帮我决策").fontSize(18).fontWeight(FontWeight.Bold).fontColor("#FFFFFF")
       }
       .width("100%").height(48)
-      .backgroundColor("#6A1B9A")
+      .backgroundColor(AppColors.HEADER_BG)
       .justifyContent(FlexAlign.Center)
 
       if (!this.isOnline) {
         Row() {
-          Text("⚠ 离线状态，决策功能需要联网").fontSize(12).fontColor("#FFFFFF")
+          Text("⚠ 离线状态，决策功能需要联网").fontSize(12).fontColor(AppColors.BG_CARD)
         }
         .width("100%").height(24)
-        .backgroundColor("#E65100")
+        .backgroundColor(AppColors.HEADER_BG_OUT)
         .justifyContent(FlexAlign.Center)
       }
 
@@ -79,34 +81,36 @@ struct DecisionPage {
 
           if (this.errorMsg) {
             Text(this.errorMsg).fontSize(13).fontColor("#F44336")
-              .padding(12).backgroundColor("#FFEBEE").borderRadius(8)
+              .padding(12).backgroundColor("#FFEBEE").borderRadius(AppRadius.SM)
               .margin({ left: 12, right: 12, top: 12 })
           }
         }.width("100%").padding({ bottom: 20 })
       }
       .layoutWeight(1).scrollBar(BarState.Off)
+
+      TabBar({ activeIndex: 2 })
     }
     .width("100%").height("100%")
-    .backgroundColor("#FAFAFA")
+    .backgroundColor(AppColors.BG_PAGE)
   }
 
   @Builder
   inputSection() {
     Column() {
-      Text("决策问题").fontSize(14).fontWeight(FontWeight.Bold).fontColor("#333333")
+      Text("决策问题").fontSize(14).fontWeight(FontWeight.Bold).fontColor(AppColors.TEXT_PRIMARY)
       TextArea({ placeholder: "例如：要不要跳槽去新公司？", text: this.question })
         .fontSize(14)
         .height(80)
-        .backgroundColor("#FFFFFF")
-        .borderRadius(8)
+        .backgroundColor(AppColors.BG_CARD)
+        .borderRadius(AppRadius.SM)
         .padding(8)
         .margin({ top: 6 })
         .onChange((v: string) => { this.question = v; })
 
-      Text("可选方案（可选）").fontSize(14).fontWeight(FontWeight.Bold).fontColor("#333333").margin({ top: 16 })
+      Text("可选方案（可选）").fontSize(14).fontWeight(FontWeight.Bold).fontColor(AppColors.TEXT_PRIMARY).margin({ top: 16 })
       ForEach(this.options, (opt: string, idx: number) => {
         Row() {
-          Text(`${idx + 1}. ${opt}`).fontSize(13).fontColor("#333333").layoutWeight(1)
+          Text(`${idx + 1}. ${opt}`).fontSize(13).fontColor(AppColors.TEXT_PRIMARY).layoutWeight(1)
           Text("✕").fontSize(14).fontColor("#F44336")
             .onClick(() => {
               const newOptions: string[] = [];
@@ -120,7 +124,7 @@ struct DecisionPage {
         }
         .width("100%")
         .padding(8)
-        .backgroundColor("#FFFFFF")
+        .backgroundColor(AppColors.BG_CARD)
         .borderRadius(6)
         .margin({ top: 4 })
       }, (opt: string, idx: number) => `${idx}_${opt}`)
@@ -128,11 +132,11 @@ struct DecisionPage {
       Row() {
         TextInput({ placeholder: "添加一个方案", text: this.optionInput })
           .layoutWeight(1).height(36)
-          .backgroundColor("#FFFFFF").borderRadius(6)
+          .backgroundColor(AppColors.BG_CARD).borderRadius(6)
           .onChange((v: string) => { this.optionInput = v; })
           .onSubmit(() => { this.addOption(); })
         Button("+ 添加").fontSize(13).height(36)
-          .backgroundColor("#6A1B9A").fontColor(Color.White)
+          .backgroundColor(AppColors.PRIMARY).fontColor(Color.White)
           .margin({ left: 8 })
           .enabled(this.optionInput.trim().length > 0)
           .onClick(() => { this.addOption(); })
@@ -141,16 +145,16 @@ struct DecisionPage {
 
       Button(this.loading ? "分析中..." : "🔮 让知心帮我分析")
         .width("100%").height(48)
-        .backgroundColor("#6A1B9A").fontColor(Color.White)
-        .borderRadius(8)
+        .backgroundColor(AppColors.PRIMARY).fontColor(Color.White)
+        .borderRadius(AppRadius.SM)
         .margin({ top: 20 })
         .enabled(this.question.trim().length > 0 && !this.loading && this.isOnline)
         .onClick(() => { this.analyze(); })
     }
     .width("100%")
     .padding(12)
-    .backgroundColor("#FFFFFF")
-    .borderRadius(12)
+    .backgroundColor(AppColors.BG_CARD)
+    .borderRadius(AppRadius.MD)
     .margin({ left: 12, right: 12, top: 12 })
     .alignItems(HorizontalAlign.Start)
   }
@@ -167,9 +171,9 @@ struct DecisionPage {
             .fontSize(18).fontWeight(FontWeight.Bold).fontColor("#1B5E20")
             .margin({ top: 6 })
           Text(this.result.recommendation.reason)
-            .fontSize(13).fontColor("#333333").margin({ top: 6 })
+            .fontSize(13).fontColor(AppColors.TEXT_PRIMARY).margin({ top: 6 })
           Row() {
-            Text("置信度").fontSize(11).fontColor("#999999")
+            Text("置信度").fontSize(11).fontColor(AppColors.TEXT_TERTIARY)
             Text(`${(this.result.recommendation.confidence * 100).toFixed(0)}%`)
               .fontSize(11).fontColor(this.confidenceColor(this.result.recommendation.confidence))
               .margin({ left: 4 })
@@ -178,7 +182,7 @@ struct DecisionPage {
         .width("100%")
         .padding(12)
         .backgroundColor("#E8F5E9")
-        .borderRadius(8)
+        .borderRadius(AppRadius.SM)
         .margin({ top: 8 })
         .alignItems(HorizontalAlign.Start)
 
@@ -186,13 +190,13 @@ struct DecisionPage {
           Column() {
             Text("⚠️ 潜在风险").fontSize(14).fontWeight(FontWeight.Bold).fontColor("#C62828")
             ForEach(this.result.risks, (risk: string) => {
-              Text(`• ${risk}`).fontSize(13).fontColor("#333333").margin({ top: 4 })
+              Text(`• ${risk}`).fontSize(13).fontColor(AppColors.TEXT_PRIMARY).margin({ top: 4 })
             }, (risk: string, idx: number) => `${idx}_${risk}`)
           }
           .width("100%")
           .padding(12)
           .backgroundColor("#FFEBEE")
-          .borderRadius(8)
+          .borderRadius(AppRadius.SM)
           .margin({ top: 8 })
           .alignItems(HorizontalAlign.Start)
         }
@@ -201,21 +205,21 @@ struct DecisionPage {
           Column() {
             Text("💡 备选方案").fontSize(14).fontWeight(FontWeight.Bold).fontColor("#F57F17")
             ForEach(this.result.alternatives, (alt: string) => {
-              Text(`• ${alt}`).fontSize(13).fontColor("#333333").margin({ top: 4 })
+              Text(`• ${alt}`).fontSize(13).fontColor(AppColors.TEXT_PRIMARY).margin({ top: 4 })
             }, (alt: string, idx: number) => `${idx}_${alt}`)
           }
           .width("100%")
           .padding(12)
           .backgroundColor("#FFF8E1")
-          .borderRadius(8)
+          .borderRadius(AppRadius.SM)
           .margin({ top: 8 })
           .alignItems(HorizontalAlign.Start)
         }
       }
       .width("100%")
       .padding(12)
-      .backgroundColor("#FFFFFF")
-      .borderRadius(12)
+      .backgroundColor(AppColors.BG_CARD)
+      .borderRadius(AppRadius.MD)
       .margin({ left: 12, right: 12, top: 12 })
       .alignItems(HorizontalAlign.Start)
     }
@@ -225,12 +229,12 @@ struct DecisionPage {
   resultCard(title: string, content: string, bgColor: string, titleColor: string) {
     Column() {
       Text(title).fontSize(14).fontWeight(FontWeight.Bold).fontColor(titleColor)
-      Text(content).fontSize(13).fontColor("#333333").margin({ top: 6 })
+      Text(content).fontSize(13).fontColor(AppColors.TEXT_PRIMARY).margin({ top: 6 })
     }
     .width("100%")
     .padding(12)
     .backgroundColor(bgColor)
-    .borderRadius(8)
+    .borderRadius(AppRadius.SM)
     .margin({ top: 8 })
     .alignItems(HorizontalAlign.Start)
   }

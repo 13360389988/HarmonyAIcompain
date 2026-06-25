@@ -29,6 +29,8 @@ import { SyncOrchestrator, SyncProgress } from "../services/SyncOrchestrator";
 import { SyncService } from "../services/SyncService";
 import { BehaviorCollector } from "../services/BehaviorCollector";
 import { ChatLogData } from "../services/SyncOrchestrator";
+import { AppColors, AppRadius } from "../theme/Theme";
+import { TabBar } from "../components/TabBar";
 import router from "@ohos.router";
 
 interface ChatItem {
@@ -523,23 +525,28 @@ struct ChatPage {
     Column() {
       Text(item.text)
         .fontSize(15)
+        .lineHeight(22)
         .padding({ left: 14, right: 14, top: 10, bottom: 10 })
-        .borderRadius(12)
-        .constraintSize({ maxWidth: "80%" })
-        .backgroundColor(item.role === "user" ? "#1677FF" :
-                         item.role === "system" ? "#FFE8D6" : "#F0F0F0")
+        .borderRadius({
+          topLeft: AppRadius.LG, topRight: AppRadius.LG,
+          bottomLeft: item.role === "user" ? AppRadius.LG : 4,
+          bottomRight: item.role === "user" ? 4 : AppRadius.LG
+        })
+        .constraintSize({ maxWidth: "78%" })
+        .backgroundColor(item.role === "user" ? AppColors.BUBBLE_USER :
+                         item.role === "system" ? AppColors.BUBBLE_SYSTEM : AppColors.BUBBLE_AI)
         .fontColor(item.role === "user" ? Color.White :
-                   item.role === "system" ? "#B85C00" : "#333333")
+                   item.role === "system" ? "#B85C00" : AppColors.TEXT_PRIMARY)
 
       Row() {
-        Text(item.time).fontSize(11).fontColor("#AAAAAA")
+        Text(item.time).fontSize(10).fontColor(AppColors.TEXT_TERTIARY)
         if (item.role === "user" && item.status === "pending") {
-          Text("  ⏳ 待发送").fontSize(11).fontColor("#FF9800")
+          Text("  ⏳ 待发送").fontSize(10).fontColor(AppColors.WARNING)
         } else if (item.role === "user" && item.status === "failed") {
-          Text("  ⚠ 失败").fontSize(11).fontColor("#F44336")
+          Text("  ⚠ 失败").fontSize(10).fontColor(AppColors.DANGER)
         }
         if (item.emotion && item.role === "user") {
-          Text(`  · ${item.emotion}`).fontSize(11).fontColor("#9E9E9E")
+          Text(`  · ${item.emotion}`).fontSize(10).fontColor(AppColors.TEXT_TERTIARY)
         }
       }.margin({ top: 4 })
     }
@@ -552,30 +559,30 @@ struct ChatPage {
   statusBar() {
     Row() {
       if (this.isSyncingAll) {
-        LoadingProgress().width(16).height(16).color("#FFFFFF")
+        LoadingProgress().width(14).height(14).color("#FFFFFF")
         Text(this.syncProgress || "同步中...").fontSize(11).fontColor("#FFFFFF").margin({ left: 6 })
       } else if (this.atHome) {
-        Circle({ width: 8, height: 8 }).fill("#4CAF50")
-        Text("在宿舍").fontSize(12).fontColor("#FFFFFF").margin({ left: 6 })
+        Circle({ width: 6, height: 6 }).fill(AppColors.SUCCESS)
+        Text("在宿舍").fontSize(11).fontColor("#FFFFFF").margin({ left: 4 })
         if (this.pendingCount > 0) {
-          Text(`· ${this.pendingCount} 条待同步`).fontSize(12).fontColor("#FFE082").margin({ left: 6 })
+          Text(`· ${this.pendingCount} 待同步`).fontSize(11).fontColor("#FFD54F").margin({ left: 4 })
         }
         if (this.memoryStats) {
-          Text(`· ${this.memoryStats}`).fontSize(11).fontColor("#BBDEFB").margin({ left: 6 })
+          Text(`· ${this.memoryStats}`).fontSize(10).fontColor("#90CAF9").margin({ left: 4 })
         }
         if (this.predictionAccuracy) {
-          Text(`· ${this.predictionAccuracy}`).fontSize(11).fontColor("#C8E6C9").margin({ left: 6 })
+          Text(`· ${this.predictionAccuracy}`).fontSize(10).fontColor("#A5D6A7").margin({ left: 4 })
         }
       } else {
-        Circle({ width: 8, height: 8 }).fill("#FF9800")
-        Text("外出模式").fontSize(12).fontColor("#FFFFFF").margin({ left: 6 })
+        Circle({ width: 6, height: 6 }).fill(AppColors.WARNING)
+        Text("外出模式").fontSize(11).fontColor("#FFFFFF").margin({ left: 4 })
         if (this.pendingCount > 0) {
-          Text(`· ${this.pendingCount} 条待回宿舍同步`).fontSize(12).fontColor("#FFE082").margin({ left: 6 })
+          Text(`· ${this.pendingCount} 待回宿舍同步`).fontSize(11).fontColor("#FFD54F").margin({ left: 4 })
         }
       }
     }
-    .width("100%").height(24)
-    .backgroundColor(this.atHome ? "#0D47A1" : "#E65100")
+    .width("100%").height(28)
+    .backgroundColor(this.atHome ? AppColors.PRIMARY_DARK : AppColors.HEADER_BG_OUT)
     .justifyContent(FlexAlign.Center)
   }
 
@@ -584,13 +591,13 @@ struct ChatPage {
     if (this.predictions.length > 0) {
       Column() {
         Row() {
-          Text("🔮 知心预测").fontSize(14).fontWeight(FontWeight.Bold).fontColor("#333333")
+          Text("🔮 知心预测").fontSize(14).fontWeight(FontWeight.Bold).fontColor(AppColors.TEXT_PRIMARY)
           Blank()
           Text(this.showPredictions ? "收起 ▲" : "展开 ▼")
-            .fontSize(12).fontColor("#1677FF")
+            .fontSize(12).fontColor(AppColors.PRIMARY)
         }
         .width("100%")
-        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .padding({ left: 16, right: 16, top: 10, bottom: 8 })
         .onClick(() => { this.showPredictions = !this.showPredictions; })
 
         if (this.showPredictions) {
@@ -602,7 +609,7 @@ struct ChatPage {
                     .fontSize(16)
                   Text(p.content)
                     .fontSize(13)
-                    .fontColor("#333333")
+                    .fontColor(AppColors.TEXT_PRIMARY)
                     .layoutWeight(1)
                     .margin({ left: 6 })
                   Text(`${(p.confidence * 100).toFixed(0)}%`)
@@ -613,13 +620,13 @@ struct ChatPage {
 
                 Text(`⏰ ${p.targetTime}`)
                   .fontSize(11)
-                  .fontColor("#999999")
+                  .fontColor(AppColors.TEXT_TERTIARY)
                   .margin({ top: 4 })
 
                 if (p.reasoning) {
                   Text(`💡 ${p.reasoning}`)
                     .fontSize(11)
-                    .fontColor("#888888")
+                    .fontColor(AppColors.TEXT_SECONDARY)
                     .margin({ top: 2 })
                 }
               }
@@ -627,16 +634,16 @@ struct ChatPage {
               .alignItems(HorizontalAlign.Start)
             }
             .width("100%")
-            .padding({ left: 16, right: 16, top: 6, bottom: 6 })
-            .backgroundColor("#F8F9FA")
-            .borderRadius(8)
-            .margin({ left: 12, right: 12, bottom: 4 })
+            .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+            .backgroundColor(AppColors.BG_INPUT)
+            .borderRadius(AppRadius.SM)
+            .margin({ left: 12, right: 12, bottom: 6 })
           }, (p: PredictionCard) => p.id.toString())
         }
       }
       .width("100%")
-      .backgroundColor("#FFFFFF")
-      .borderRadius(12)
+      .backgroundColor(AppColors.BG_CARD)
+      .borderRadius(AppRadius.MD)
       .margin({ left: 8, right: 8, top: 8 })
     }
   }
@@ -658,26 +665,17 @@ struct ChatPage {
 
   build() {
     Column() {
+      // 头部
       Row() {
-        Text("🤔").fontSize(20)
-          .onClick(() => {
-            router.pushUrl({ url: "pages/DecisionPage" });
-          })
-        Blank()
-        Text("知心").fontSize(20).fontWeight(FontWeight.Bold).fontColor("#FFFFFF")
-        Blank()
-        Text("🧠").fontSize(20)
-          .onClick(() => {
-            router.pushUrl({ url: "pages/MemoryPage" });
-          })
+        Text("知心").fontSize(18).fontWeight(FontWeight.Bold).fontColor("#FFFFFF")
       }
       .width("100%").height(48)
-      .backgroundColor("#1677FF")
-      .padding({ left: 16, right: 16 })
+      .backgroundColor(AppColors.HEADER_BG)
+      .justifyContent(FlexAlign.Center)
 
       this.statusBar()
-      Divider().height(0.5).color("#E0E0E0")
 
+      // 聊天区域
       Scroll(this.scroller) {
         Column() {
           this.predictionPanel()
@@ -691,33 +689,37 @@ struct ChatPage {
       }
       .layoutWeight(1).scrollable(ScrollDirection.Vertical).scrollBar(BarState.Off)
 
-      Divider().height(0.5).color("#E0E0E0")
+      Divider().height(0.5).color(AppColors.BORDER)
 
+      // 输入栏
       Row() {
         TextInput({
-          placeholder: this.atHome ? "想和知心聊聊..." : "外出模式，消息将暂存，回宿舍自动发送",
+          placeholder: this.atHome ? "想和知心聊聊..." : "外出模式，消息将暂存",
           text: this.inputText
         })
           .onChange((value: string) => { this.inputText = value; })
           .onSubmit(() => { this.send(); })
-          .layoutWeight(1).height(44)
-          .backgroundColor("#F5F5F5").borderRadius(22)
+          .layoutWeight(1).height(40)
+          .backgroundColor(AppColors.BG_INPUT).borderRadius(20)
           .padding({ left: 16, right: 16 })
 
         Button(this.atHome ? "发送" : "暂存")
-          .fontSize(15).height(44)
-          .padding({ left: 16, right: 16 }).borderRadius(22)
-          .backgroundColor(this.atHome ? "#1677FF" : "#FF9800")
+          .fontSize(14).height(40)
+          .padding({ left: 20, right: 20 }).borderRadius(20)
+          .backgroundColor(this.atHome ? AppColors.PRIMARY : AppColors.WARNING)
           .fontColor(Color.White)
-          .margin({ left: 10 })
+          .margin({ left: 8 })
           .enabled(this.inputText.trim().length > 0)
           .onClick(() => { this.send(); })
       }
       .width("100%")
       .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-      .backgroundColor("#FFFFFF")
+      .backgroundColor(AppColors.BG_CARD)
+
+      // 底部导航
+      TabBar({ activeIndex: 0 })
     }
     .width("100%").height("100%")
-    .backgroundColor("#FAFAFA")
+    .backgroundColor(AppColors.BG_PAGE)
   }
 }

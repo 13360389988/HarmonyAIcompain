@@ -6,6 +6,8 @@
 
 import { MemoryService, SemanticRecord, EpisodicRecord, ProceduralRecord, RelationRecord } from "../services/MemoryService";
 import { PredictionService, PredictionAccuracyResult } from "../services/PredictionService";
+import { AppColors, AppRadius } from "../theme/Theme";
+import { TabBar } from "../components/TabBar";
 import router from "@ohos.router";
 
 interface PredictionStats {
@@ -56,36 +58,31 @@ struct MemoryPage {
   build() {
     Column() {
       Row() {
-        Text("数字孪生记忆").fontSize(20).fontWeight(FontWeight.Bold).fontColor("#FFFFFF")
-        Blank()
-        Text("📊").fontSize(20)
-          .onClick(() => {
-            router.pushUrl({ url: "pages/InsightsPage" });
-          })
+        Text("数字孪生记忆").fontSize(18).fontWeight(FontWeight.Bold).fontColor("#FFFFFF")
       }
       .width("100%").height(48)
-      .backgroundColor("#1677FF")
-      .padding({ left: 16, right: 16 })
+      .backgroundColor(AppColors.HEADER_BG)
+      .justifyContent(FlexAlign.Center)
 
       Row() {
-        this.statCard("画像", this.stats["semantic_memory"] ?? 0)
-        this.statCard("事件", this.stats["episodic_memory"] ?? 0)
-        this.statCard("关系", this.stats["relation_network"] ?? 0)
-        this.statCard("规律", this.stats["procedural_memory"] ?? 0)
-        this.statCard("预测", this.stats["prediction_memory"] ?? 0)
+        this.statCard("画像", this.getStat("semantic_memory"))
+        this.statCard("事件", this.getStat("episodic_memory"))
+        this.statCard("关系", this.getStat("relation_network"))
+        this.statCard("规律", this.getStat("procedural_memory"))
+        this.statCard("预测", this.getStat("prediction_memory"))
       }
       .width("100%")
       .padding({ left: 8, right: 8, top: 8, bottom: 8 })
-      .backgroundColor("#F5F5F5")
+      .backgroundColor(AppColors.BG_INPUT)
 
       Row() {
         ForEach(["画像", "事件", "关系", "规律", "预测"], (tab: string, idx: number) => {
           Text(tab)
             .fontSize(14)
-            .fontColor(this.activeTab === idx ? "#FFFFFF" : "#666666")
+            .fontColor(this.activeTab === idx ? AppColors.BG_CARD : AppColors.TEXT_SECONDARY)
             .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-            .backgroundColor(this.activeTab === idx ? "#1677FF" : "#EEEEEE")
-            .borderRadius(16)
+            .backgroundColor(this.activeTab === idx ? AppColors.PRIMARY : AppColors.BG_INPUT)
+            .borderRadius(AppRadius.LG)
             .margin({ left: 4, right: 4 })
             .onClick(() => { this.activeTab = idx; })
         })
@@ -94,7 +91,7 @@ struct MemoryPage {
       .padding({ top: 8, bottom: 8 })
       .justifyContent(FlexAlign.Center)
 
-      Divider().height(0.5).color("#E0E0E0")
+      Divider().height(0.5).color(AppColors.BORDER)
 
       Scroll() {
         Column() {
@@ -106,21 +103,23 @@ struct MemoryPage {
         }.width("100%").padding({ bottom: 20 })
       }
       .layoutWeight(1).scrollBar(BarState.Off)
+
+      TabBar({ activeIndex: 1 })
     }
     .width("100%").height("100%")
-    .backgroundColor("#FAFAFA")
+    .backgroundColor(AppColors.BG_PAGE)
   }
 
   @Builder
   statCard(label: string, count: number) {
     Column() {
-      Text(count.toString()).fontSize(18).fontWeight(FontWeight.Bold).fontColor("#1677FF")
-      Text(label).fontSize(11).fontColor("#999999").margin({ top: 2 })
+      Text(count.toString()).fontSize(18).fontWeight(FontWeight.Bold).fontColor(AppColors.PRIMARY)
+      Text(label).fontSize(11).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 2 })
     }
     .layoutWeight(1)
     .padding({ top: 8, bottom: 8 })
-    .backgroundColor("#FFFFFF")
-    .borderRadius(8)
+    .backgroundColor(AppColors.BG_CARD)
+    .borderRadius(AppRadius.SM)
     .margin({ left: 2, right: 2 })
   }
 
@@ -132,24 +131,24 @@ struct MemoryPage {
       ForEach(this.profileList, (p: SemanticRecord) => {
         Row() {
           Column() {
-            Text(p.key).fontSize(13).fontColor("#999999")
-            Text(p.value).fontSize(15).fontColor("#333333").margin({ top: 4 })
+            Text(p.key).fontSize(13).fontColor(AppColors.TEXT_TERTIARY)
+            Text(p.value).fontSize(15).fontColor(AppColors.TEXT_PRIMARY).margin({ top: 4 })
             Row() {
               Text(`置信度 ${(p.confidence * 100).toFixed(0)}%`)
                 .fontSize(11).fontColor(this.confidenceColor(p.confidence))
-              Text(`· 证据 ${p.evidence_count} 次`).fontSize(11).fontColor("#AAAAAA").margin({ left: 8 })
-              Text(`· ${p.source || "chat"}`).fontSize(11).fontColor("#AAAAAA").margin({ left: 8 })
+              Text(`· 证据 ${p.evidence_count} 次`).fontSize(11).fontColor(AppColors.TEXT_TERTIARY).margin({ left: 8 })
+              Text(`· ${p.source || "chat"}`).fontSize(11).fontColor(AppColors.TEXT_TERTIARY).margin({ left: 8 })
             }.margin({ top: 4 })
           }
           .layoutWeight(1).alignItems(HorizontalAlign.Start)
-          Text(p.category).fontSize(11).fontColor("#1677FF")
+          Text(p.category).fontSize(11).fontColor(AppColors.PRIMARY)
             .padding({ left: 8, right: 8, top: 2, bottom: 2 })
-            .backgroundColor("#E3F2FD").borderRadius(8)
+            .backgroundColor(AppColors.BG_TAG).borderRadius(AppRadius.SM)
         }
         .width("100%")
         .padding(12)
-        .backgroundColor("#FFFFFF")
-        .borderRadius(8)
+        .backgroundColor(AppColors.BG_CARD)
+        .borderRadius(AppRadius.SM)
         .margin({ left: 12, right: 12, top: 6 })
       }, (p: SemanticRecord) => p.id.toString())
     }
@@ -163,23 +162,23 @@ struct MemoryPage {
       ForEach(this.episodeList, (e: EpisodicRecord) => {
         Column() {
           Row() {
-            Text(e.title).fontSize(15).fontWeight(FontWeight.Bold).fontColor("#333333").layoutWeight(1)
+            Text(e.title).fontSize(15).fontWeight(FontWeight.Bold).fontColor(AppColors.TEXT_PRIMARY).layoutWeight(1)
             Text(`★ ${(e.importance * 100).toFixed(0)}%`)
               .fontSize(11).fontColor(this.confidenceColor(e.importance))
           }.width("100%")
 
           if (e.description) {
-            Text(e.description).fontSize(13).fontColor("#666666").margin({ top: 4 })
+            Text(e.description).fontSize(13).fontColor(AppColors.TEXT_SECONDARY).margin({ top: 4 })
           }
 
           Row() {
             Text(`📅 ${new Date(e.event_time).toLocaleString()}`)
-              .fontSize(11).fontColor("#999999")
+              .fontSize(11).fontColor(AppColors.TEXT_TERTIARY)
             if (e.emotion) {
-              Text(`· ${e.emotion}`).fontSize(11).fontColor("#999999").margin({ left: 8 })
+              Text(`· ${e.emotion}`).fontSize(11).fontColor(AppColors.TEXT_TERTIARY).margin({ left: 8 })
             }
             if (e.location) {
-              Text(`· 📍 ${e.location}`).fontSize(11).fontColor("#999999").margin({ left: 8 })
+              Text(`· 📍 ${e.location}`).fontSize(11).fontColor(AppColors.TEXT_TERTIARY).margin({ left: 8 })
             }
           }.margin({ top: 4 })
 
@@ -189,8 +188,8 @@ struct MemoryPage {
         }
         .width("100%")
         .padding(12)
-        .backgroundColor("#FFFFFF")
-        .borderRadius(8)
+        .backgroundColor(AppColors.BG_CARD)
+        .borderRadius(AppRadius.SM)
         .margin({ left: 12, right: 12, top: 6 })
         .alignItems(HorizontalAlign.Start)
       }, (e: EpisodicRecord) => e.id.toString())
@@ -205,20 +204,20 @@ struct MemoryPage {
       ForEach(this.relationList, (r: RelationRecord) => {
         Row() {
           Text(r.person_name.charAt(0))
-            .fontSize(18).fontColor("#FFFFFF")
+            .fontSize(18).fontColor(AppColors.BG_CARD)
             .width(40).height(40)
             .backgroundColor(this.relationColor(r.relation_type))
             .borderRadius(20)
             .textAlign(TextAlign.Center)
 
           Column() {
-            Text(r.person_name).fontSize(15).fontColor("#333333")
+            Text(r.person_name).fontSize(15).fontColor(AppColors.TEXT_PRIMARY)
             Row() {
               Text(r.relation_type || "关系不明")
-                .fontSize(11).fontColor("#1677FF")
+                .fontSize(11).fontColor(AppColors.PRIMARY)
                 .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-                .backgroundColor("#E3F2FD").borderRadius(4)
-              Text(`· 提及 ${r.mention_count} 次`).fontSize(11).fontColor("#999999").margin({ left: 8 })
+                .backgroundColor(AppColors.BG_TAG).borderRadius(4)
+              Text(`· 提及 ${r.mention_count} 次`).fontSize(11).fontColor(AppColors.TEXT_TERTIARY).margin({ left: 8 })
             }.margin({ top: 4 })
           }
           .layoutWeight(1).alignItems(HorizontalAlign.Start)
@@ -230,8 +229,8 @@ struct MemoryPage {
         }
         .width("100%")
         .padding(12)
-        .backgroundColor("#FFFFFF")
-        .borderRadius(8)
+        .backgroundColor(AppColors.BG_CARD)
+        .borderRadius(AppRadius.SM)
         .margin({ left: 12, right: 12, top: 6 })
       }, (r: RelationRecord) => r.id.toString())
     }
@@ -246,28 +245,28 @@ struct MemoryPage {
         Column() {
           Row() {
             Text(this.patternTypeIcon(p.pattern_type)).fontSize(16)
-            Text(p.description).fontSize(14).fontColor("#333333").layoutWeight(1).margin({ left: 6 })
+            Text(p.description).fontSize(14).fontColor(AppColors.TEXT_PRIMARY).layoutWeight(1).margin({ left: 6 })
             Text(`${(p.confidence * 100).toFixed(0)}%`)
               .fontSize(11).fontColor(this.confidenceColor(p.confidence))
           }.width("100%")
 
           Row() {
-            Text(p.pattern_type).fontSize(11).fontColor("#666666")
+            Text(p.pattern_type).fontSize(11).fontColor(AppColors.TEXT_SECONDARY)
             if (p.frequency) {
-              Text(`· ${p.frequency}`).fontSize(11).fontColor("#666666").margin({ left: 8 })
+              Text(`· ${p.frequency}`).fontSize(11).fontColor(AppColors.TEXT_SECONDARY).margin({ left: 8 })
             }
-            Text(`· 触发 ${p.trigger_count} 次`).fontSize(11).fontColor("#666666").margin({ left: 8 })
+            Text(`· 触发 ${p.trigger_count} 次`).fontSize(11).fontColor(AppColors.TEXT_SECONDARY).margin({ left: 8 })
           }.margin({ top: 4 })
 
           if (p.last_triggered) {
             Text(`上次触发：${new Date(p.last_triggered).toLocaleString()}`)
-              .fontSize(11).fontColor("#AAAAAA").margin({ top: 2 })
+              .fontSize(11).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 2 })
           }
         }
         .width("100%")
         .padding(12)
-        .backgroundColor("#FFFFFF")
-        .borderRadius(8)
+        .backgroundColor(AppColors.BG_CARD)
+        .borderRadius(AppRadius.SM)
         .margin({ left: 12, right: 12, top: 6 })
         .alignItems(HorizontalAlign.Start)
       }, (p: ProceduralRecord) => p.id.toString())
@@ -278,32 +277,32 @@ struct MemoryPage {
   predictionTab() {
     Column() {
       Column() {
-        Text("预测准确率").fontSize(14).fontColor("#666666")
+        Text("预测准确率").fontSize(14).fontColor(AppColors.TEXT_SECONDARY)
         Text(`${(this.predictionStats.accuracy * 100).toFixed(0)}%`)
           .fontSize(48).fontWeight(FontWeight.Bold)
           .fontColor(this.confidenceColor(this.predictionStats.accuracy))
           .margin({ top: 8 })
         Text(`基于 ${this.predictionStats.total} 次验证`)
-          .fontSize(12).fontColor("#999999").margin({ top: 4 })
+          .fontSize(12).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 4 })
         Text(`平均误差：${(this.predictionStats.avgError * 100).toFixed(0)}%`)
-          .fontSize(12).fontColor("#999999").margin({ top: 2 })
+          .fontSize(12).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 2 })
       }
       .width("100%")
       .padding({ top: 24, bottom: 24 })
-      .backgroundColor("#FFFFFF")
-      .borderRadius(12)
+      .backgroundColor(AppColors.BG_CARD)
+      .borderRadius(AppRadius.MD)
       .margin({ left: 12, right: 12, top: 12 })
       .alignItems(HorizontalAlign.Center)
 
       Column() {
-        Text("预测校准机制").fontSize(14).fontWeight(FontWeight.Bold).fontColor("#333333")
+        Text("预测校准机制").fontSize(14).fontWeight(FontWeight.Bold).fontColor(AppColors.TEXT_PRIMARY)
         Text("每次预测后，系统会在目标时间到达时自动对比你的实际行为，计算误差并校准后续预测。预测越多，系统越了解你。")
-          .fontSize(12).fontColor("#666666").margin({ top: 8 })
+          .fontSize(12).fontColor(AppColors.TEXT_SECONDARY).margin({ top: 8 })
       }
       .width("100%")
       .padding(12)
-      .backgroundColor("#FFFFFF")
-      .borderRadius(8)
+      .backgroundColor(AppColors.BG_CARD)
+      .borderRadius(AppRadius.SM)
       .margin({ left: 12, right: 12, top: 12 })
       .alignItems(HorizontalAlign.Start)
     }
@@ -313,7 +312,7 @@ struct MemoryPage {
   emptyState(text: string) {
     Column() {
       Text("📭").fontSize(48)
-      Text(text).fontSize(13).fontColor("#999999").margin({ top: 12 })
+      Text(text).fontSize(13).fontColor(AppColors.TEXT_TERTIARY).margin({ top: 12 })
     }
     .width("100%")
     .padding({ top: 60, bottom: 60 })
@@ -324,6 +323,11 @@ struct MemoryPage {
     if (conf >= 0.7) return "#4CAF50";
     if (conf >= 0.4) return "#FF9800";
     return "#F44336";
+  }
+
+  private getStat(key: string): number {
+    const val = this.stats[key];
+    return val !== undefined ? val : 0;
   }
 
   private relationColor(type: string): ResourceColor {
